@@ -1,0 +1,25 @@
+rules_version = '2';
+// ─────────────────────────────────────────────────────────────
+// LineGuard Storage 보안 규칙
+// 해당 장애건 참여자만 사진/동영상/음성 업로드·조회 가능
+// Firebase 콘솔 > Storage > 규칙 탭에 붙여넣고 [게시] 하세요.
+// ─────────────────────────────────────────────────────────────
+service firebase.storage {
+  match /b/{bucket}/o {
+    function isMember(iid) {
+      return request.auth != null &&
+        firestore.exists(/databases/(default)/documents/incidents/$(iid)/members/$(request.auth.uid));
+    }
+
+    match /incidents/{iid}/{kind}/{file} {
+      allow read: if isMember(iid);
+      allow create: if isMember(iid)
+        && kind in ['photos', 'videos', 'voices']
+        && request.resource.size < 300 * 1024 * 1024
+        && (request.resource.contentType.matches('image/.*')
+            || request.resource.contentType.matches('video/.*')
+            || request.resource.contentType.matches('audio/.*'));
+      allow update, delete: if false;
+    }
+  }
+}

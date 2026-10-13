@@ -1,0 +1,131 @@
+@import "tailwindcss";
+
+:root {
+  color-scheme: dark;
+}
+
+html,
+body {
+  background: #0b1220;
+  color: #e2e8f0;
+  font-family: "Pretendard", "Malgun Gothic", "Apple SD Gothic Neo", system-ui, sans-serif;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* 지시 램프 미확인 점멸 */
+@keyframes lamp {
+  0% { opacity: 1; }
+  100% { opacity: 0.25; }
+}
+
+/* ── 지도 오버레이 ── */
+.lg-site {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: #0f172a;
+  border: 2px solid #f59e0b;
+  border-radius: 10px;
+  padding: 2px 8px 2px 2px;
+  color: #fff;
+  font-size: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+  white-space: nowrap;
+}
+.lg-site-code {
+  background: #f59e0b;
+  color: #0f172a;
+  font-weight: 900;
+  border-radius: 7px;
+  padding: 0 6px;
+  font-size: 14px;
+}
+.lg-person {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.lg-dot {
+  width: 18px;
+  height: 18px;
+  border-radius: 9999px;
+  border: 3px solid #fff;
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.25), 0 2px 6px rgba(0, 0, 0, 0.6);
+}
+.lg-me .lg-dot {
+  animation: lamp 0.9s steps(2) infinite alternate;
+}
+.lg-person-label {
+  margin-top: 2px;
+  background: rgba(15, 23, 42, 0.9);
+  color: #fff;
+  font-size: 11px;
+  padding: 1px 6px;
+  border-radius: 6px;
+  white-space: nowrap;
+}
+.lg-photo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+}
+.lg-photo img,
+.lg-video {
+  width: 46px;
+  height: 46px;
+  object-fit: cover;
+  border: 3px solid #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
+  background: #1e293b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+}
+.lg-break img {
+  width: 64px;
+  height: 64px;
+  border-color: #ef4444;
+  box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.4), 0 2px 10px rgba(0, 0, 0, 0.7);
+}
+.lg-photo-label {
+  margin-top: 2px;
+  background: #b91c1c;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 6px;
+  white-space: nowrap;
+}
+.lg-breakpin {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.lg-x {
+  width: 30px;
+  height: 30px;
+  border-radius: 9999px;
+  background: #dc2626;
+  color: #fff;
+  font-weight: 900;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 3px solid #fff;
+  box-shadow: 0 0 0 5px rgba(239, 68, 68, 0.35);
+}
+.lg-pending {
+  font-size: 30px;
+  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.7));
+}
+
+/* 인쇄 시 불필요 요소 숨김 */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+}

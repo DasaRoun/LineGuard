@@ -1,0 +1,73 @@
+rules_version = '2';
+// ─────────────────────────────────────────────────────────────
+// LineGuard Firestore 보안 규칙
+// - 접속코드로 참여(members 등록)한 사용자만 해당 장애건을 읽고 쓸 수 있습니다.
+// - 접속코드 문서는 '단건 조회'만 허용(목록 조회 불가) → 코드 추측 방지
+// Firebase 콘솔 > Firestore Database > 규칙 탭에 그대로 붙여넣고 [게시] 하세요.
+// ─────────────────────────────────────────────────────────────
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() { return request.auth != null; }
+    function incident(iid) { return get(/databases/$(database)/documents/incidents/$(iid)); }
+    function isMember(iid) {
+      return signedIn() && exists(/databases/$(database)/documents/incidents/$(iid)/members/$(request.auth.uid));
+    }
+
+    // 접속코드 → 장애건 ID
+    match /joinCodes/{code} {
+      allow get: if signedIn();
+      allow list: if false;
+      // 장애건 소유자만 코드 생성 가능, 덮어쓰기/삭제 불가
+      allow create: if signedIn()
+        && incident(request.resource.data.incidentId).data.ownerUid == request.auth.uid
+        && incident(request.resource.data.incidentId).data.code == code;
+      allow update, delete: if false;
+    }
+
+    match /incidents/{iid} {
+      allow create: if signedIn() && request.resource.data.ownerUid == request.auth.uid;
+      allow read: if isMember(iid);
+      // 소유자/코드 변경 금지
+      allow update: if isMember(iid)
+        && request.resource.data.ownerUid == resource.data.ownerUid
+        && request.resource.data.code == resource.data.code;
+      allow delete: if false;
+
+      // 참여자: 본인 문서만, 소유자이거나 올바른 접속코드를 제시해야 등록 가능
+      match /members/{uid} {
+        allow read: if isMember(iid);
+        allow create, update: if signedIn() && uid == request.auth.uid && (
+          incident(iid).data.ownerUid == request.auth.uid ||
+          (request.resource.data.code is string &&
+           get(/databases/$(database)/documents/joinCodes/$(request.resource.data.code)).data.incidentId == iid)
+        );
+        allow delete: if false;
+      }
+
+      match /sites/{code} {
+        allow read, create, update: if isMember(iid);
+        allow delete: if false;
+      }
+
+      match /dispatches/{did} {
+        allow read, update: if isMember(iid);
+        allow create: if isMember(iid) && request.resource.data.uid == request.auth.uid;
+        allow delete: if false;
+      }
+
+      // 이력(채팅) — 작성만 가능, 수정/삭제 불가 (감사 기록 보존)
+      match /messages/{mid} {
+        allow read: if isMember(iid);
+        allow create: if isMember(iid) && request.resource.data.authorUid == request.auth.uid;
+        allow update, delete: if false;
+      }
+
+      // 실시간 위치 — 본인 문서만 덮어쓰기/삭제 (이력 없음)
+      match /live/{uid} {
+        allow read: if isMember(iid);
+        allow write: if isMember(iid) && uid == request.auth.uid;
+      }
+    }
+  }
+}
